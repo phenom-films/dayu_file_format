@@ -4,8 +4,8 @@
 __author__ = 'andyguo'
 
 import inspect
-from numbers import Number
 from functools import wraps
+from numbers import Number
 
 
 def data_type_validation(**validation):
@@ -33,6 +33,11 @@ class Point2D(object):
         self.x = x
         self.y = y
 
+    def __eq__(self, other):
+        if isinstance(other, Point2D):
+            return round(self.x - other.x, 7) == 0 and round(self.y == other.y, 7) == 0
+        return False
+
     def __repr__(self):
         return '<Point2D>(x={}, y={})'.format(self.x, self.y)
 
@@ -54,7 +59,7 @@ class KeyFrame(object):
 
     @property
     def right_tangent(self):
-        if round(self.current.x, 7) == 0:
+        if round(self.right.x, 7) == 0:
             return 1e8
         return (self.right.y) / float(self.right.x)
 
@@ -69,11 +74,10 @@ class KeyFrame(object):
     def to_list(self):
         return [[self.current.x, self.current.y], [self.left.x, self.left.y], [self.right.x, self.right.y]]
 
+    def __eq__(self, other):
+        if isinstance(other, KeyFrame):
+            return self.current == other.current and self.left == other.left and self.right == other.right
+        return False
+
     def __repr__(self):
         return '<KeyPoint>(current={}, left={}, right={})'.format(self.current, self.left, self.right)
-
-
-if __name__ == '__main__':
-    aa = KeyFrame(Point2D(0, 0), Point2D(-1, -2), Point2D(1, 4))
-    print aa
-    print aa.right_magnitude

@@ -4,14 +4,16 @@
 __author__ = 'andyguo'
 
 import bisect
-from mixin import SaveLoadMixin
 from collections import Iterable
-from data_structure import *
+
+from data_structure import data_type_validation, KeyFrame, Point2D
+from mixin import SaveLoadMixin, InterpolationMixin
 
 
-class Curve(SaveLoadMixin):
+class Curve(SaveLoadMixin, InterpolationMixin):
     def __init__(self):
         super(Curve, self).__init__()
+        self.extra_data = {}
         self._keyframes = []
 
     def __len__(self):
@@ -38,33 +40,3 @@ class Curve(SaveLoadMixin):
     @data_type_validation(index=int)
     def pop(self, index=-1):
         return self._keyframes.pop(index)
-
-    def eval(self, x, method='hermite'):
-        pass
-
-
-if __name__ == '__main__':
-    import time
-
-    cc = Curve()
-
-    for x in range(2880):
-        cc.add(KeyFrame(Point2D(x, x + 1)))
-
-    start = time.time()
-    cc.save('/Users/andyguo/Desktop/curve.bcurve', name='sdf', haha=123, ff=12.5)
-    print time.time() - start
-
-    start = time.time()
-    cc.save('/Users/andyguo/Desktop/curve.curve', name='sdf', haha=123, ff=12.5)
-    print time.time() - start
-
-    bb = Curve()
-    start = time.time()
-    bb.load('/Users/andyguo/Desktop/curve.bcurve')
-    print time.time() - start
-
-    bb = Curve()
-    start = time.time()
-    bb.load('/Users/andyguo/Desktop/curve.curve')
-    print time.time() - start
