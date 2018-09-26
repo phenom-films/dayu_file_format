@@ -27,6 +27,12 @@ class Curve(SaveLoadMixin, InterpolationMixin):
         for keyframe in self._keyframes:
             yield keyframe
 
+    @property
+    def duration(self):
+        if self._keyframes:
+            return self[-1].current.x - self[0].current.x
+        return 0
+
     @data_type_validation(keyframe=KeyFrame)
     def add(self, keyframe):
         index = bisect.bisect([k.current.x for k in self], keyframe.current.x)
@@ -40,3 +46,28 @@ class Curve(SaveLoadMixin, InterpolationMixin):
     @data_type_validation(index=int)
     def pop(self, index=-1):
         return self._keyframes.pop(index)
+
+    @data_type_validation(KeyFrame=KeyFrame)
+    def remove(self, keyframe):
+        self._keyframes.remove(keyframe)
+
+    @data_type_validation(x=(int, float))
+    def find_nearest_keyframe(self, x):
+        if x <= self[0].current.x:
+            return self[0]
+        if x >= self[-1].current.x:
+            return self[-1]
+
+        index = bisect.bisect([k.current.x for k in self], x)
+        if (x - self[index - 1].current.x) <= (self[index].current.x - x):
+            return self[index - 1]
+        else:
+            return self[index]
+
+    def clear(self):
+        try:
+            self.extra_data = {}
+            self._keyframes = []
+            return True
+        except Exception as e:
+            return False
