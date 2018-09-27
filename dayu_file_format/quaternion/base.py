@@ -111,53 +111,83 @@ class Quaternion(object):
     @data_type_validation(rx=Number, ry=Number, rz=Number, order=str)
     def from_euler_angles(cls, rx, ry, rz, order='xyz'):
         import math
-        sin_x = math.sin(math.radians(rx) / 2.0)
-        sin_y = math.sin(math.radians(ry) / 2.0)
-        sin_z = math.sin(math.radians(rz) / 2.0)
-        cos_x = math.cos(math.radians(rx) / 2.0)
-        cos_y = math.cos(math.radians(ry) / 2.0)
-        cos_z = math.cos(math.radians(rz) / 2.0)
 
-        # if order == 'yxz':
-        #     w = -sin_x * sin_y * sin_z + cos_x * cos_y * cos_z
-        #     x = sin_x * cos_y * cos_z + sin_y * sin_z * cos_x
-        #     y = -sin_x * sin_z * cos_y + sin_y * cos_x * cos_z
-        #     z = sin_x * sin_y * cos_z + sin_z * cos_x * cos_y
-        #     return Quaternion(w, x, y, z)
-        #
-        # if order == 'yxz':
-        #     w = sin_x * sin_y * sin_z + cos_x * cos_y * cos_z
-        #     x = sin_x * cos_y * cos_z - sin_y * sin_z * cos_x
-        #     y = -sin_x * sin_y * cos_z + sin_z * cos_x * cos_y
-        #     z = sin_x * sin_z * cos_y + sin_y * cos_x * cos_z
-        #     return Quaternion(w, x, y, z)
-        # #
-        # if order == 'yxz':
-        #     w = sin_x * sin_y * sin_z + cos_x * cos_y * cos_z
-        #     x = sin_x * sin_z * cos_y + sin_y * cos_x * cos_z
-        #     y = sin_x * cos_y * cos_z - sin_y * sin_z * cos_x
-        #     z = -sin_x * sin_y * cos_z + sin_z * cos_x * cos_y
-        #     return Quaternion(w, x, y, z)
-        #
-        if order == 'yxz':
-            w = -sin_x * sin_y * sin_z + cos_x * cos_y * cos_z
-            x = sin_x * cos_y * cos_z - sin_y * sin_z * cos_x
-            y = sin_x * sin_z * cos_x + sin_y * cos_x * cos_z
-            z = sin_x * sin_z * cos_y + sin_y * cos_x * cos_z
+        if order == 'xyz':
+            sin_1 = math.sin(math.radians(rz) / 2.0)
+            sin_2 = math.sin(math.radians(ry) / 2.0)
+            sin_3 = math.sin(math.radians(rx) / 2.0)
+            cos_1 = math.cos(math.radians(rz) / 2.0)
+            cos_2 = math.cos(math.radians(ry) / 2.0)
+            cos_3 = math.cos(math.radians(rx) / 2.0)
+            w = sin_1 * sin_2 * sin_3 + cos_1 * cos_2 * cos_3
+            x = -sin_1 * sin_2 * cos_3 + sin_3 * cos_1 * cos_2
+            y = sin_1 * sin_3 * cos_2 + sin_2 * cos_1 * cos_3
+            z = sin_1 * cos_2 * cos_3 - sin_2 * sin_3 * cos_1
             return Quaternion(w, x, y, z)
 
         if order == 'xzy':
-            w = -sin_x * sin_y * sin_z + cos_x * cos_y * cos_z
-            x = sin_x * cos_y * cos_z + sin_y * sin_z * cos_x
-            y = sin_x * sin_z * cos_x + sin_y * cos_x * cos_z
-            z = -sin_x * sin_y * cos_z + sin_z * cos_x * cos_y
+            sin_1 = math.sin(math.radians(ry) / 2.0)
+            sin_2 = math.sin(math.radians(rz) / 2.0)
+            sin_3 = math.sin(math.radians(rx) / 2.0)
+            cos_1 = math.cos(math.radians(ry) / 2.0)
+            cos_2 = math.cos(math.radians(rz) / 2.0)
+            cos_3 = math.cos(math.radians(rx) / 2.0)
+            w = -sin_1 * sin_2 * sin_3 + cos_1 * cos_2 * cos_3
+            x = sin_1 * sin_2 * cos_3 + sin_3 * cos_1 * cos_2
+            y = sin_1 * cos_2 * cos_3 + sin_2 * sin_3 * cos_1
+            z = -sin_1 * sin_3 * cos_2 + sin_2 * cos_1 * cos_3
             return Quaternion(w, x, y, z)
 
-        if order == 'xyz':
-            w = sin_x * sin_y * sin_z + cos_x * cos_y * cos_z
-            x = sin_x * cos_y * cos_z - sin_y * sin_z * cos_x
-            y = sin_x * sin_z * cos_x + sin_y * cos_x * cos_z
-            z = -sin_x * sin_y * cos_z + sin_z * cos_x * cos_y
+        if order == 'yxz':
+            sin_1 = math.sin(math.radians(rz) / 2.0)
+            sin_2 = math.sin(math.radians(rx) / 2.0)
+            sin_3 = math.sin(math.radians(ry) / 2.0)
+            cos_1 = math.cos(math.radians(rz) / 2.0)
+            cos_2 = math.cos(math.radians(rx) / 2.0)
+            cos_3 = math.cos(math.radians(ry) / 2.0)
+            w = -sin_1 * sin_2 * sin_3 + cos_1 * cos_2 * cos_3
+            x = -sin_1 * sin_3 * cos_2 + sin_2 * cos_1 * cos_3
+            y = sin_1 * sin_2 * cos_3 + sin_3 * cos_1 * cos_2
+            z = sin_1 * cos_2 * cos_3 + sin_2 * sin_3 * cos_1
+            return Quaternion(w, x, y, z)
+
+        if order == 'yzx':
+            sin_1 = math.sin(math.radians(rx) / 2.0)
+            sin_2 = math.sin(math.radians(rz) / 2.0)
+            sin_3 = math.sin(math.radians(ry) / 2.0)
+            cos_1 = math.cos(math.radians(rx) / 2.0)
+            cos_2 = math.cos(math.radians(rz) / 2.0)
+            cos_3 = math.cos(math.radians(ry) / 2.0)
+            w = sin_1 * sin_2 * sin_3 + cos_1 * cos_2 * cos_3
+            x = sin_1 * cos_2 * cos_3 - sin_2 * sin_3 * cos_1
+            y = -sin_1 * sin_2 * cos_3 + sin_3 * cos_1 * cos_2
+            z = sin_1 * sin_3 * cos_2 + sin_2 * cos_1 * cos_3
+            return Quaternion(w, x, y, z)
+
+        if order == 'zxy':
+            sin_1 = math.sin(math.radians(ry) / 2.0)
+            sin_2 = math.sin(math.radians(rx) / 2.0)
+            sin_3 = math.sin(math.radians(rz) / 2.0)
+            cos_1 = math.cos(math.radians(ry) / 2.0)
+            cos_2 = math.cos(math.radians(rx) / 2.0)
+            cos_3 = math.cos(math.radians(rz) / 2.0)
+            w = sin_1 * sin_2 * sin_3 + cos_1 * cos_2 * cos_3
+            x = sin_1 * sin_3 * cos_2 + sin_2 * cos_1 * cos_3
+            y = sin_1 * cos_2 * cos_3 - sin_2 * sin_3 * cos_1
+            z = -sin_1 * sin_2 * cos_3 + sin_3 * cos_1 * cos_2
+            return Quaternion(w, x, y, z)
+
+        if order == 'zyx':
+            sin_1 = math.sin(math.radians(rx) / 2.0)
+            sin_2 = math.sin(math.radians(ry) / 2.0)
+            sin_3 = math.sin(math.radians(rz) / 2.0)
+            cos_1 = math.cos(math.radians(rx) / 2.0)
+            cos_2 = math.cos(math.radians(ry) / 2.0)
+            cos_3 = math.cos(math.radians(rz) / 2.0)
+            w = -sin_1 * sin_2 * sin_3 + cos_1 * cos_2 * cos_3
+            x = sin_1 * cos_2 * cos_3 + sin_2 * sin_3 * cos_1
+            y = -sin_1 * sin_3 * cos_1 + sin_2 * cos_1 * cos_3
+            z = sin_1 * sin_2 * cos_3 + sin_3 * cos_1 * cos_2
             return Quaternion(w, x, y, z)
 
     @property
@@ -248,23 +278,24 @@ class Quaternion(object):
 
 
 if __name__ == '__main__':
-    aa = Quaternion.from_euler_angles(10, 20, 30, order='xyz')
-    print aa
+    order = 'zyx'
+    aa = Quaternion.from_euler_angles(10, 20, 30, order=order)
+    # print aa
 
     '''
-    xyz = 0.951549  0.0381346	0.189308	0.239298	
-    xzy = 0.943714  0.127679	0.189308	0.239298	
-    yxz = 0.943714  0.0381346	0.189308	0.268536	
-    yzx = 0.951549  0.0381346	0.144878	0.268536	
-    zxy = 0.951549  0.127679	0.144878	0.239298	
-    zyx = 0.943714  0.127679	0.144878	0.268536	
+    xyz = 0.951549,  0.0381346,	0.189308,	0.239298,	
+    xzy = 0.943714,  0.127679,	0.189308,	0.239298,	
+    yxz = 0.943714,  0.0381346,	0.189308,	0.268536,	
+    yzx = 0.951549,  0.0381346,	0.144878,	0.268536,	
+    zxy = 0.951549,  0.127679,	0.144878,	0.239298,	
+    zyx = 0.943714,  0.127679,	0.144878,	0.268536,	
   
 
     '''
 
-    a = Quaternion(0.951549, 0.0381346, 0.189308, 0.239298).normalize()
-    print a
-    print a.axis
-    print a.radian
-    # print aa.euler_angles(order='zyx')
-    print a.rotate(Vec3f(1, 0, 0))
+    # a = Quaternion(0.943714, 0.127679, 0.189308, 0.239298).normalize()
+    # print a
+    # print a.axis
+    # print a.radian
+    print aa.euler_angles(order=order)
+    # print a.rotate(Vec3f(1, 0, 0))
