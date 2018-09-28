@@ -27,8 +27,10 @@ class Quaternion(object):
         return cls(math.cos(angle / 2.0), axis.x * sin_value, axis.y * sin_value, axis.z * sin_value)
 
     @classmethod
-    @data_type_validation(matrix_3x3=list)
     def from_matrix(cls, matrix_3x3, column_first=False):
+        from matrix import Matrix_33f
+        if not isinstance(matrix_3x3, Matrix_33f):
+            raise ValueError('matrix_3x3 expect a type Matrix_33f: {}'.format(type(matrix_3x3)))
         if column_first:
             w = ((1.0 + matrix_3x3[0][0] + matrix_3x3[1][1] + matrix_3x3[2][2]) ** 0.5) * 0.5
             x = (matrix_3x3[1][2] - matrix_3x3[2][1]) / (4.0 * w)
@@ -206,6 +208,7 @@ class Quaternion(object):
     data_type_validation(order=str)
 
     def matrix(self, column_first=False):
+        from matrix import Matrix_33f
         a00 = self.w ** 2 + self.x ** 2 - self.y ** 2 - self.z ** 2
         a01 = 2.0 * (self.x * self.y - self.w * self.z)
         a02 = 2.0 * (self.w * self.y + self.x * self.z)
@@ -216,13 +219,13 @@ class Quaternion(object):
         a21 = 2.0 * (self.w * self.x + self.y * self.z)
         a22 = self.w ** 2 - self.x ** 2 - self.y ** 2 + self.z ** 2
         if column_first:
-            return [[a00, a10, a20],
-                    [a01, a11, a22],
-                    [a02, a12, a22]]
+            return Matrix_33f(a00, a10, a20,
+                              a01, a11, a22,
+                              a02, a12, a22)
         else:
-            return [[a00, a01, a02],
-                    [a10, a11, a12],
-                    [a20, a21, a22]]
+            return Matrix_33f(a00, a01, a02,
+                              a10, a11, a12,
+                              a20, a21, a22)
 
     def euler_angles(self, order='xyz'):
         import math
