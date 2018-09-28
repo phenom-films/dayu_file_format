@@ -104,8 +104,22 @@ class Quaternion(object):
     @data_type_validation(axis=Vec3f, angle=Number)
     def from_axis_angle(cls, axis, angle):
         import math
-        sin_value = math.sin(angle)
-        return cls(math.cos(angle), axis.x * sin_value, axis.y * sin_value, axis.z * sin_value)
+        sin_value = math.sin(angle / 2.0)
+        return cls(math.cos(angle / 2.0), axis.x * sin_value, axis.y * sin_value, axis.z * sin_value)
+
+    @classmethod
+    @data_type_validation(matrix_3x3=list)
+    def from_matrix(cls, matrix_3x3, column_first=False):
+        if column_first:
+            pass
+
+        else:
+            w = ((1.0 + matrix_3x3[0][0] + matrix_3x3[1][1] + matrix_3x3[2][2]) ** 0.5) * 0.5
+            x = (matrix_3x3[2][1] - matrix_3x3[1][2]) / (4.0 * w)
+            y = (matrix_3x3[0][2] - matrix_3x3[2][0]) / (4.0 * w)
+            z = (matrix_3x3[1][0] - matrix_3x3[0][1]) / (4.0 * w)
+
+        return Quaternion(w, x, y, z)
 
     @classmethod
     @data_type_validation(rx=Number, ry=Number, rz=Number, order=str)
@@ -186,7 +200,7 @@ class Quaternion(object):
             cos_3 = math.cos(math.radians(rz) / 2.0)
             w = -sin_1 * sin_2 * sin_3 + cos_1 * cos_2 * cos_3
             x = sin_1 * cos_2 * cos_3 + sin_2 * sin_3 * cos_1
-            y = -sin_1 * sin_3 * cos_1 + sin_2 * cos_1 * cos_3
+            y = -sin_1 * sin_3 * cos_2 + sin_2 * cos_1 * cos_3
             z = sin_1 * sin_2 * cos_3 + sin_3 * cos_1 * cos_2
             return Quaternion(w, x, y, z)
 
@@ -243,7 +257,7 @@ class Quaternion(object):
     def conjugate(self):
         return Quaternion(self.w, -self.x, -self.y, -self.z)
 
-    def inverse(self):
+    def inv(self):
         return self.conjugate / self.length2
 
     @property
@@ -259,28 +273,86 @@ class Quaternion(object):
     def rotate(self, v):
         if isinstance(v, Vec3f):
             p = Quaternion(0, v.x, v.y, v.z)
-            return (self * p * self.inverse()).imagine
+            return (self * p * self.inv()).imagine
         raise TypeError()
 
     data_type_validation(order=str)
 
+    def matrix(self, column_first=False):
+        a00 = self.w ** 2 + self.x ** 2 - self.y ** 2 - self.z ** 2
+        a01 = 2.0 * (self.x * self.y - self.w * self.z)
+        a02 = 2.0 * (self.w * self.y + self.x * self.z)
+        a10 = 2.0 * (self.x * self.y + self.w * self.z)
+        a11 = self.w ** 2 - self.x ** 2 + self.y ** 2 - self.z ** 2
+        a12 = 2.0 * (self.y * self.z - self.w * self.x)
+        a20 = 2.0 * (self.x * self.z - self.w * self.y)
+        a21 = 2.0 * (self.w * self.x + self.y * self.z)
+        a22 = self.w ** 2 - self.x ** 2 - self.y ** 2 + self.z ** 2
+        if column_first:
+            return [[a00, a10, a20],
+                    [a01, a11, a22],
+                    [a02, a12, a22]]
+        else:
+            return [[a00, a01, a02],
+                    [a10, a11, a12],
+                    [a20, a21, a22]]
+
     def euler_angles(self, order='xyz'):
         import math
 
-        angle_1 = math.degrees(math.atan2(2.0 * (self.w * self.x + self.y * self.z),
-                                          1.0 - 2.0 * (self.x ** 2 + self.y ** 2)))
-        t2 = 2.0 * (self.w * self.y - self.z * self.x)
-        t2 = max(min(t2, 1), -1)
-        angle_2 = math.degrees(math.asin(t2))
-        angle_3 = math.degrees(
-                math.atan2(2.0 * (self.w * self.z + self.x * self.y), 1.0 - 2.0 * (self.y ** 2 + self.z ** 2)))
-        return dict(zip(order.lower(), (angle_1, angle_2, angle_3)))
+        if order == 'xyz':
+            angle_1 = math.degrees(math.atan2(2.0 * (self.w * self.x + self.y * self.z),
+                                              1.0 - 2.0 * (self.x ** 2 + self.y ** 2)))
+            angle_2 = math.degrees(math.asin(2.0 * (self.w * self.y - self.z * self.x)))
+            angle_3 = math.degrees(
+                    math.atan2(2.0 * (self.w * self.z + self.x * self.y), 1.0 - 2.0 * (self.y ** 2 + self.z ** 2)))
+            return dict(zip(order.lower(), (angle_1, angle_2, angle_3)))
+
+        if order == 'xzy':
+            angle_1 = -math.degrees(math.atan2(2.0 * (self.y * self.z - self.w * self.x),
+                                               1.0 - 2.0 * (self.x ** 2 + self.z ** 2)))
+            angle_2 = math.degrees(math.asin(2.0 * (self.x * self.y + self.w * self.z)))
+            angle_3 = -math.degrees(
+                    math.atan2(2.0 * (self.x * self.z - self.w * self.y), 1.0 - 2.0 * (self.y ** 2 + self.z ** 2)))
+            return dict(zip(order.lower(), (angle_1, angle_2, angle_3)))
+
+        if order == 'yzx':
+            angle_1 = math.degrees(math.atan2(2.0 * (self.w * self.y + self.x * self.z),
+                                              1.0 - 2.0 * (self.y ** 2 + self.z ** 2)))
+            angle_2 = -math.degrees(math.asin(2.0 * (self.x * self.y - self.w * self.z)))
+            angle_3 = math.degrees(math.atan2(2.0 * (self.w * self.x + self.y * self.z),
+                                              1.0 - 2.0 * (self.x ** 2 + self.z ** 2)))
+            return dict(zip(order.lower(), (angle_1, angle_2, angle_3)))
+
+        if order == 'yxz':
+            angle_1 = -math.degrees(math.atan2(2.0 * (self.x * self.z - self.w * self.y),
+                                               1.0 - 2.0 * (self.x ** 2 + self.y ** 2)))
+            angle_2 = math.degrees(math.asin(2.0 * (self.w * self.x + self.y * self.z)))
+            angle_3 = -math.degrees(math.atan2(2.0 * (self.x * self.y - self.w * self.z),
+                                               1.0 - 2.0 * (self.x ** 2 + self.z ** 2)))
+            return dict(zip(order.lower(), (angle_1, angle_2, angle_3)))
+
+        if order == 'zxy':
+            angle_1 = math.degrees(math.atan2(2.0 * (self.x * self.y + self.w * self.z),
+                                              1.0 - 2.0 * (self.x ** 2 + self.z ** 2)))
+            angle_2 = -math.degrees(math.asin(2.0 * (self.y * self.z - self.w * self.x)))
+            angle_3 = math.degrees(math.atan2(2.0 * (self.w * self.y + self.x * self.z),
+                                              1.0 - 2.0 * (self.x ** 2 + self.y ** 2)))
+            return dict(zip(order.lower(), (angle_1, angle_2, angle_3)))
+
+        if order == 'zyx':
+            angle_1 = -math.degrees(math.atan2(2.0 * (self.x * self.y - self.w * self.z),
+                                               1.0 - 2.0 * (self.y ** 2 + self.z ** 2)))
+            angle_2 = math.degrees(math.asin(2.0 * (self.w * self.y + self.x * self.z)))
+            angle_3 = -math.degrees(math.atan2(2.0 * (self.y * self.z - self.w * self.x),
+                                               1.0 - 2.0 * (self.x ** 2 + self.y ** 2)))
+            return dict(zip(order.lower(), (angle_1, angle_2, angle_3)))
 
 
 if __name__ == '__main__':
-    order = 'zyx'
+    order = 'yxz'
     aa = Quaternion.from_euler_angles(10, 20, 30, order=order)
-    # print aa
+    print aa
 
     '''
     xyz = 0.951549,  0.0381346,	0.189308,	0.239298,	
@@ -295,7 +367,10 @@ if __name__ == '__main__':
 
     # a = Quaternion(0.943714, 0.127679, 0.189308, 0.239298).normalize()
     # print a
-    # print a.axis
-    # print a.radian
-    print aa.euler_angles(order=order)
+    print aa.axis
+    print aa.radian
+    print aa.matrix()
+    print Quaternion.from_matrix(aa.matrix())
+    # print aa.euler_angles(order=order)
+    # print aa.matrix(column_first=True)
     # print a.rotate(Vec3f(1, 0, 0))
