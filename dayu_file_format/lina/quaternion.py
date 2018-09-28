@@ -3,96 +3,15 @@
 
 __author__ = 'andyguo'
 
-import inspect
-from functools import wraps
 from numbers import Number
 
-
-def data_type_validation(**validation):
-    def outter_wrapper(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            call_args = inspect.getcallargs(func, *args, **kwargs)
-            call_args.pop(inspect.getargspec(func).args[0], None)
-            for k, v in call_args.items():
-                if validation.has_key(k) and (not isinstance(v, validation.get(k))):
-                    raise ValueError('{} except type: {}'.format(k, validation.get(k)))
-
-            return func(*args, **kwargs)
-
-        return wrapper
-
-    return outter_wrapper
-
-
-class Vec3f(object):
-    @data_type_validation(x=Number, y=Number, z=Number)
-    def __init__(self, x, y, z):
-        self.x = float(x)
-        self.y = float(y)
-        self.z = float(z)
-
-    def __add__(self, other):
-        if isinstance(other, Vec3f):
-            return Vec3f(self.x + other.x, self.y + other.y, self.z + other.z)
-        if isinstance(other, Number):
-            return Vec3f(self.x + other, self.y + other, self.z + other)
-        raise TypeError()
-
-    def __sub__(self, other):
-        if isinstance(other, Vec3f):
-            return Vec3f(self.x - other.x, self.y - other.y, self.z - other.z)
-        if isinstance(other, Number):
-            return Vec3f(self.x - other, self.y - other, self.z - other)
-        raise TypeError()
-
-    def __mul__(self, other):
-        if isinstance(other, Vec3f):
-            return Vec3f(self.x * other.x, self.y * other.y, self.z * other.z)
-        if isinstance(other, Number):
-            return Vec3f(self.x * other, self.y * other, self.z * other)
-        raise TypeError()
-
-    def __div__(self, other):
-        if isinstance(other, Vec3f):
-            return Vec3f(self.x / other.x, self.y / other.y, self.z / other.z)
-        if isinstance(other, Number):
-            return Vec3f(self.x / other, self.y / other, self.z / other)
-        raise TypeError()
-
-    def __neg__(self):
-        return self * (-1)
-
-    def __repr__(self):
-        return '<Vec3f>({}, {}, {})'.format(self.x, self.y, self.z)
-
-    def dot(self, other):
-        if isinstance(other, Vec3f):
-            return self.x * other.x + self.y * other.y + self.z * other.z
-        raise TypeError()
-
-    @property
-    def length(self):
-        return (self.x ** 2 + self.y ** 2 + self.z ** 2) ** 0.5
-
-    @property
-    def length2(self):
-        return self.x ** 2 + self.y ** 2 + self.z ** 2
-
-    def normalize(self):
-        _length = self.length
-        return Vec3f(self.x / _length, self.y / _length, self.z / _length)
-
-    def cross(self, other):
-        if isinstance(other, Vec3f):
-            x = self.y * other.z - self.z * other.y
-            y = self.z * other.x - self.x * other.z
-            z = self.x * other.y - self.y * other.x
-            return Vec3f(x, y, z)
-        raise TypeError()
+from deco import data_type_validation
+from vector import Vec3f
 
 
 class Quaternion(object):
+    __slots__ = ['w', 'x', 'y', 'z']
+
     @data_type_validation(w=Number, x=Number, y=Number, z=Number)
     def __init__(self, w, x, y, z):
         self.w = float(w)
@@ -111,7 +30,10 @@ class Quaternion(object):
     @data_type_validation(matrix_3x3=list)
     def from_matrix(cls, matrix_3x3, column_first=False):
         if column_first:
-            pass
+            w = ((1.0 + matrix_3x3[0][0] + matrix_3x3[1][1] + matrix_3x3[2][2]) ** 0.5) * 0.5
+            x = (matrix_3x3[1][2] - matrix_3x3[2][1]) / (4.0 * w)
+            y = (matrix_3x3[2][0] - matrix_3x3[0][2]) / (4.0 * w)
+            z = (matrix_3x3[0][1] - matrix_3x3[1][0]) / (4.0 * w)
 
         else:
             w = ((1.0 + matrix_3x3[0][0] + matrix_3x3[1][1] + matrix_3x3[2][2]) ** 0.5) * 0.5
@@ -120,6 +42,11 @@ class Quaternion(object):
             z = (matrix_3x3[1][0] - matrix_3x3[0][1]) / (4.0 * w)
 
         return Quaternion(w, x, y, z)
+
+    @classmethod
+    @data_type_validation(v=Vec3f)
+    def from_vector(cls, v):
+        return cls(0.0, v.x, v.y, v.z)
 
     @classmethod
     @data_type_validation(rx=Number, ry=Number, rz=Number, order=str)
@@ -350,7 +277,7 @@ class Quaternion(object):
 
 
 if __name__ == '__main__':
-    order = 'yxz'
+    order = 'xyz'
     aa = Quaternion.from_euler_angles(10, 20, 30, order=order)
     print aa
 
