@@ -340,32 +340,32 @@ class Matrix_33f(MatrixBase):
             angle_1 = math.degrees(math.atan2(self[2][1], self[2][2]))
             angle_2 = -math.degrees(math.asin(self[2][0]))
             angle_3 = math.degrees(math.atan2(self[1][0], self[0][0]))
-            return dict(zip(order.lower(), (angle_1, angle_2, angle_3)))
+            return angle_1, angle_2, angle_3
         if order == 'xzy':
             angle_1 = -math.degrees(math.atan2(self[1][2], self[1][1]))
             angle_2 = math.degrees(math.asin(self[1][0]))
             angle_3 = -math.degrees(math.atan2(self[2][0], self[0][0]))
-            return dict(zip(order.lower(), (angle_1, angle_2, angle_3)))
+            return angle_1, angle_3, angle_2
         if order == 'yzx':
             angle_1 = math.degrees(math.atan2(self[0][2], self[0][0]))
             angle_2 = -math.degrees(math.asin(self[0][1]))
             angle_3 = math.degrees(math.atan2(self[2][1], self[1][1]))
-            return dict(zip(order.lower(), (angle_1, angle_2, angle_3)))
-        if order == 'yxz':
+            return angle_3, angle_1, angle_2
+        if order == 'yxz':r
             angle_1 = -math.degrees(math.atan2(self[0][1], self[1][1]))
             angle_2 = math.degrees(math.asin(self[2][0]))
             angle_3 = -math.degrees(math.atan2(self[2][0], self[2][2]))
-            return dict(zip(order.lower(), (angle_1, angle_2, angle_3)))
+            return angle_2, angle_1, angle_3
         if order == 'zxy':
             angle_1 = math.degrees(math.atan2(self[1][0], self[1][1]))
             angle_2 = -math.degrees(math.asin(self[1][2]))
             angle_3 = math.degrees(math.atan2(self[0][2], self[2][2]))
-            return dict(zip(order.lower(), (angle_1, angle_2, angle_3)))
+            return angle_2, angle_3, angle_1
         if order == 'zyx':
             angle_1 = -math.degrees(math.atan2(self[0][1], self[0][0]))
             angle_2 = math.degrees(math.asin(self[0][2]))
             angle_3 = -math.degrees(math.atan2(self[1][2], self[2][2]))
-            return dict(zip(order.lower(), (angle_1, angle_2, angle_3)))
+            return angle_3, angle_2, angle_1
 
 
 class Matrix_44f(MatrixBase):
