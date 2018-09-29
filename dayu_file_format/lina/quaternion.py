@@ -236,7 +236,7 @@ class Quaternion(object):
             angle_2 = math.degrees(math.asin(2.0 * (self.w * self.y - self.z * self.x)))
             angle_3 = math.degrees(
                     math.atan2(2.0 * (self.w * self.z + self.x * self.y), 1.0 - 2.0 * (self.y ** 2 + self.z ** 2)))
-            return dict(zip(order.lower(), (angle_1, angle_2, angle_3)))
+            return angle_1, angle_2, angle_3
 
         if order == 'xzy':
             angle_1 = -math.degrees(math.atan2(2.0 * (self.y * self.z - self.w * self.x),
@@ -244,7 +244,7 @@ class Quaternion(object):
             angle_2 = math.degrees(math.asin(2.0 * (self.x * self.y + self.w * self.z)))
             angle_3 = -math.degrees(
                     math.atan2(2.0 * (self.x * self.z - self.w * self.y), 1.0 - 2.0 * (self.y ** 2 + self.z ** 2)))
-            return dict(zip(order.lower(), (angle_1, angle_2, angle_3)))
+            return angle_1, angle_3, angle_2
 
         if order == 'yzx':
             angle_1 = math.degrees(math.atan2(2.0 * (self.w * self.y + self.x * self.z),
@@ -252,7 +252,7 @@ class Quaternion(object):
             angle_2 = -math.degrees(math.asin(2.0 * (self.x * self.y - self.w * self.z)))
             angle_3 = math.degrees(math.atan2(2.0 * (self.w * self.x + self.y * self.z),
                                               1.0 - 2.0 * (self.x ** 2 + self.z ** 2)))
-            return dict(zip(order.lower(), (angle_1, angle_2, angle_3)))
+            return angle_3, angle_1, angle_2
 
         if order == 'yxz':
             angle_1 = -math.degrees(math.atan2(2.0 * (self.x * self.z - self.w * self.y),
@@ -260,7 +260,7 @@ class Quaternion(object):
             angle_2 = math.degrees(math.asin(2.0 * (self.w * self.x + self.y * self.z)))
             angle_3 = -math.degrees(math.atan2(2.0 * (self.x * self.y - self.w * self.z),
                                                1.0 - 2.0 * (self.x ** 2 + self.z ** 2)))
-            return dict(zip(order.lower(), (angle_1, angle_2, angle_3)))
+            return angle_2, angle_1, angle_3
 
         if order == 'zxy':
             angle_1 = math.degrees(math.atan2(2.0 * (self.x * self.y + self.w * self.z),
@@ -268,7 +268,7 @@ class Quaternion(object):
             angle_2 = -math.degrees(math.asin(2.0 * (self.y * self.z - self.w * self.x)))
             angle_3 = math.degrees(math.atan2(2.0 * (self.w * self.y + self.x * self.z),
                                               1.0 - 2.0 * (self.x ** 2 + self.y ** 2)))
-            return dict(zip(order.lower(), (angle_1, angle_2, angle_3)))
+            return angle_2, angle_3, angle_1
 
         if order == 'zyx':
             angle_1 = -math.degrees(math.atan2(2.0 * (self.x * self.y - self.w * self.z),
@@ -276,11 +276,11 @@ class Quaternion(object):
             angle_2 = math.degrees(math.asin(2.0 * (self.w * self.y + self.x * self.z)))
             angle_3 = -math.degrees(math.atan2(2.0 * (self.y * self.z - self.w * self.x),
                                                1.0 - 2.0 * (self.x ** 2 + self.y ** 2)))
-            return dict(zip(order.lower(), (angle_1, angle_2, angle_3)))
+            return angle_3, angle_2, angle_1
 
 
 if __name__ == '__main__':
-    order = 'xyz'
+    order = 'yzx'
     aa = Quaternion.from_euler_angles(10, 20, 30, order=order)
     print aa
 
@@ -297,10 +297,10 @@ if __name__ == '__main__':
 
     # a = Quaternion(0.943714, 0.127679, 0.189308, 0.239298).normalize()
     # print a
-    print aa.axis
-    print aa.radian
-    print aa.matrix()
-    print Quaternion.from_matrix(aa.matrix())
-    # print aa.euler_angles(order=order)
+    # print aa.axis
+    # print aa.radian
+    # print aa.matrix()
+    # print Quaternion.from_matrix(aa.matrix())
+    print aa.euler_angles(order=order)
     # print aa.matrix(column_first=True)
     # print a.rotate(Vec3f(1, 0, 0))
