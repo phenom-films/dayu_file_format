@@ -351,7 +351,7 @@ class Matrix_33f(MatrixBase):
             angle_2 = -math.degrees(math.asin(self[0][1]))
             angle_3 = math.degrees(math.atan2(self[2][1], self[1][1]))
             return angle_3, angle_1, angle_2
-        if order == 'yxz':r
+        if order == 'yxz':
             angle_1 = -math.degrees(math.atan2(self[0][1], self[1][1]))
             angle_2 = math.degrees(math.asin(self[2][0]))
             angle_3 = -math.degrees(math.atan2(self[2][0], self[2][2]))
