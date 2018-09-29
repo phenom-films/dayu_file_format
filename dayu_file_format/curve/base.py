@@ -13,6 +13,7 @@ from mixin import SaveLoadMixin, InterpolationMixin
 class Curve(SaveLoadMixin, InterpolationMixin):
     def __init__(self):
         super(Curve, self).__init__()
+        self.method = 'cubic'
         self.extra_data = {}
         self._keyframes = []
 
@@ -71,3 +72,22 @@ class Curve(SaveLoadMixin, InterpolationMixin):
             return True
         except Exception as e:
             return False
+
+
+if __name__ == '__main__':
+    c = Curve()
+    c.add(KeyFrame(Point2D(1, 1), right=Point2D(1, 0.66435778141).normalize()))
+    c.add(KeyFrame(Point2D(20, 9.835835457), left=Point2D(-1, -0.0664163604379).normalize(),
+                   right=Point2D(1, 0.0664163604379).normalize()))
+    c.add(KeyFrame(Point2D(50, 10.49999905), left=Point2D(-1, 5.68935010214e-10).normalize()))
+
+    c.save('/Users/andyguo/Desktop/curve.curve')
+    c.save('/Users/andyguo/Desktop/curve.bcurve')
+
+    b = Curve.load('/Users/andyguo/Desktop/curve.curve')
+    for x in b:
+        print x
+
+    b = Curve.load('/Users/andyguo/Desktop/curve.bcurve')
+    for x in b:
+        print x
