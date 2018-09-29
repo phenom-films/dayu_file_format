@@ -11,7 +11,30 @@ from data_structure import Point2D, KeyFrame
 
 
 class InterpolationMixin(object):
-    def eval(self, x, method='hermite'):
+    def _get_safe_tangent(self, keyframe_index, side):
+        keyframe_index = keyframe_index if keyframe_index >= 0 else len(self) + keyframe_index
+
+        if side == 'left':
+            if self[keyframe_index].left != Point2D(0, 0):
+                return self[keyframe_index].left_tangent
+            if len(self) == 1:
+                return 0
+            if keyframe_index == 0 and len(self) > 1:
+                return (self[1].current.y - self[0].current.y) / (self[1].current.x - self[0].current.x)
+            return (self[keyframe_index].current.y - self[keyframe_index - 1].current.y) / \
+                   (self[keyframe_index].current.x - self[keyframe_index - 1].current.x)
+        if side == 'right':
+            if self[keyframe_index].right != Point2D(0, 0):
+                return self[keyframe_index].right_tangent
+            if len(self) == 1:
+                return 0
+            if keyframe_index == len(self) - 1 and len(self) > 1:
+                return (self[-1].current.y - self[-2].current.y) / (self[-1].current.x - self[-2].current.x)
+            return (self[keyframe_index + 1].current.y - self[keyframe_index].current.y) / \
+                   (self[keyframe_index + 1].current.x - self[keyframe_index].current.x)
+
+    def eval(self, x, method=None):
+        method = method if method else self.method
         if not self._keyframes:
             return None
 
@@ -36,13 +59,13 @@ class InterpolationMixin(object):
         if x <= self[0].current.x:
             left_most_keyframe = self[0]
             result = left_most_keyframe.current.y - \
-                     left_most_keyframe.left_tangent * (left_most_keyframe.current.x - x)
+                     self._get_safe_tangent(0, 'left') * (left_most_keyframe.current.x - x)
             return result
 
         if x >= self[-1].current.x:
             right_most_keyframe = self[-1]
             result = right_most_keyframe.current.y + \
-                     right_most_keyframe.right_tangent * (x - right_most_keyframe.current.x)
+                     self._get_safe_tangent(-1, 'right') * (x - right_most_keyframe.current.x)
             return result
 
         index = bisect.bisect([k.current.x for k in self], x)
@@ -57,13 +80,13 @@ class InterpolationMixin(object):
         if x <= self[0].current.x:
             left_most_keyframe = self[0]
             result = left_most_keyframe.current.y - \
-                     left_most_keyframe.left_tangent * (left_most_keyframe.current.x - x)
+                     self._get_safe_tangent(0, 'left') * (left_most_keyframe.current.x - x)
             return result
 
         if x >= self[-1].current.x:
             right_most_keyframe = self[-1]
             result = right_most_keyframe.current.y + \
-                     right_most_keyframe.right_tangent * (x - right_most_keyframe.current.x)
+                     self._get_safe_tangent(-1, 'right') * (x - right_most_keyframe.current.x)
             return result
 
         index = bisect.bisect([k.current.x for k in self], x)
@@ -79,17 +102,17 @@ class InterpolationMixin(object):
         result = ((p3 * x + p2) * x + p1) * x + p0
         return result
 
-    def _eval_natural_cubic(self, x):
+    def _eval_cubic(self, x):
         if x <= self[0].current.x:
             left_most_keyframe = self[0]
             result = left_most_keyframe.current.y - \
-                     left_most_keyframe.left_tangent * (left_most_keyframe.current.x - x)
+                     self._get_safe_tangent(0, 'left') * (left_most_keyframe.current.x - x)
             return result
 
         if x >= self[-1].current.x:
             right_most_keyframe = self[-1]
             result = right_most_keyframe.current.y + \
-                     right_most_keyframe.right_tangent * (x - right_most_keyframe.current.x)
+                     self._get_safe_tangent(-1, 'right') * (x - right_most_keyframe.current.x)
             return result
 
         index = bisect.bisect([k.current.x for k in self], x)
@@ -129,6 +152,14 @@ class SaveLoadMixin(object):
         else:
             raise IOError(u'cannot open {}'.format(file_path))
 
+    @classmethod
+    def from_dict(cls, data):
+        curve = cls()
+        curve.extra_data = data['global']
+        for k in data['keyframes']:
+            curve._keyframes.append(KeyFrame(Point2D(*k[0]), Point2D(*k[1]), Point2D(*k[2])))
+        return curve
+
     def _load_ascii_file(self, file_path):
         import json
         with open(file_path, 'r') as jf:
@@ -163,7 +194,10 @@ class SaveLoadMixin(object):
             func = getattr(self, '_load_glob_value_{}'.format(unpack_fmt_code[data_type].__name__))
             if func:
                 value = func(file_obj)
-                self.extra_data[key] = value
+                if key == 'method':
+                    self.method = value
+                else:
+                    self.extra_data[key] = value
 
     def _load_glob_value_str(self, file_obj):
         return ''.join(iter(lambda: file_obj.read(1), '\x00'))
@@ -193,13 +227,17 @@ class SaveLoadMixin(object):
         if file_path.endswith('.bcurve'):
             return self._save_binary_file(file_path, **kwargs)
 
-    def _save_ascii_file(self, file_path, **kwargs):
-        import json
+    def to_dict(self, **kwargs):
         temp_dict = self.extra_data
         temp_dict.update(kwargs)
-        result = {'global': temp_dict, 'keyframes': []}
+        result = {'global': temp_dict, 'method': self.method, 'keyframes': []}
         for k in self:
             result['keyframes'].append(k.to_list())
+        return result
+
+    def _save_ascii_file(self, file_path, **kwargs):
+        import json
+        result = self.to_dict(**kwargs)
 
         try:
             with open(file_path, 'w') as jf:
@@ -257,6 +295,7 @@ class SaveLoadMixin(object):
         fmt_string = '>'
         temp_dict = self.extra_data
         temp_dict.update(kwargs)
+        temp_dict.update(method=self.method)
         ordered_values = temp_dict.items()
         for key, value in ordered_values:
             fmt_string += '{key}s b b b {value} b '.format(key=len(key),
