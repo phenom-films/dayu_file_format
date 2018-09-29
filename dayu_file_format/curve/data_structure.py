@@ -38,6 +38,9 @@ class Point2D(object):
             return round(self.x - other.x, 7) == 0 and round(self.y - other.y, 7) == 0
         return False
 
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     def __add__(self, other):
         if isinstance(other, Number):
             return Point2D(self.x + other, self.y + other)
